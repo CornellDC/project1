@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
+'''
+TPRG 2131 Fall 2024 Project 1
+October 28th, 2024
+Cornell Falconer-Lawson <Cornell.FalconerLawson@dcmail.ca>
 
-# STUDENT version for Project 1.
-# TPRG2131 Fall 202x
-# Updated Phil J (Fall 202x)
-# 
-# Louis Bertrand
-# Oct 4, 2021 - initial version
-# Nov 17, 2022 - Updated for Fall 2022.
-# 
+This program is strictly my own work. Any material
+beyond course learning materials that is taken from
+the Web or other sources is properly cited, giving
+credit to the original author(s).
+
+DESCRIPTION
+'''
 
 # PySimpleGUI recipes used:
 #
@@ -18,6 +21,8 @@
 # https://pysimplegui.readthedocs.io/en/latest/cookbook/#asynchronous-window-with-periodic-update
 
 import PySimpleGUI as sg
+import gpiozero
+
 
 
 # Hardware interface module
