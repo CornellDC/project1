@@ -21,9 +21,7 @@ DESCRIPTION
 # https://pysimplegui.readthedocs.io/en/latest/cookbook/#asynchronous-window-with-periodic-update
 
 import PySimpleGUI as sg
-import gpiozero
-
-
+from gpiozero import Servo, BadPinFactory
 
 # Hardware interface module
 # Button basic recipe: *** define the pin you used
@@ -33,9 +31,10 @@ import gpiozero
 #Where am I?
 hardware_present = False
 try:
+    servo = Servo(17) # Will change later
     #*** define the pin you used
     hardware_present = True
-except ModuleNotFoundError:
+except BadPinFactory:
     print("Not on a Raspberry Pi or gpiozero not installed.")
 
 # Setting this constant to True enables the logging function
@@ -218,8 +217,8 @@ if __name__ == "__main__":
    # Checks if being used on Pi
     if hardware_present:
         # Set up the hardware button callback (do not use () after function!)
-        key1.when_pressed = vending.button_action
-
+        #key1.when_pressed = vending.button_action
+        None
     # The Event Loop: begin continuous processing of events
     # The window.read() function reads events and values from the GUI.
     # The machine.event variable stores the event so that the
