@@ -54,7 +54,12 @@ def log(s):
 # For testing purposes, output is to stdout, also ensure use of Docstring, in class
 class VendingMachine(object):
     
-    PRODUCTS = {"suprise": ("SURPRISE", 5),
+    PRODUCTS = {
+                "Chocolate": ("Chocolate", 200),
+                "Cola": ("Cola", 150),
+                "Milk": ("Milk", 200),
+                "Choc Milk": ("Choc Milk", 225),
+                "Gum": ("Gum", 125),
 
                 }
 
