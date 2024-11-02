@@ -146,6 +146,7 @@ class AddCoinsState(State):
             machine.go_to_state('count_change')
         elif machine.event in machine.COINS:
             machine.add_coin(machine.event)
+            log(f"Total ¢: {machine.amount}")
         elif machine.event in machine.PRODUCTS:
             if machine.amount >= machine.PRODUCTS[machine.event][1]:
                 machine.go_to_state('deliver_product')
@@ -164,7 +165,7 @@ class DeliverProductState(State):
             machine.go_to_state('count_change')
         else:
             machine.go_to_state('waiting')
-
+        log(f"Total ¢: {machine.amount}")
 # Count out the change in coins 
 class CountChangeState(State):
     _NAME = "count_change"
