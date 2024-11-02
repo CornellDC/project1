@@ -59,8 +59,11 @@ class VendingMachine(object):
                 }
 
     # List of coins: each tuple is ("VALUE", value in cents)
-    COINS = {"5": ("5", 5),
-
+    COINS = {"¢5": ("5", 5),
+             "¢10": ("10", 10),
+             "¢25": ("25", 25),
+             "$1": ("100", 100),
+             "$2": ("200", 200)
             }
 
 
