@@ -11,6 +11,7 @@ credit to the original author(s).
 
 DESCRIPTION
 '''
+import time
 
 # PySimpleGUI recipes used:
 #
@@ -21,7 +22,8 @@ DESCRIPTION
 # https://pysimplegui.readthedocs.io/en/latest/cookbook/#asynchronous-window-with-periodic-update
 
 import PySimpleGUI as sg
-from gpiozero import Servo, BadPinFactory
+from gpiozero import Servo, BadPinFactory, Button
+
 
 # Hardware interface module
 # Button basic recipe: *** define the pin you used
@@ -32,6 +34,7 @@ from gpiozero import Servo, BadPinFactory
 hardware_present = False
 try:
     servo = Servo(17) # Will change later
+    key1 = Button(5, pull_up=True)
     #*** define the pin you used
     hardware_present = True
 except BadPinFactory:
@@ -166,6 +169,7 @@ class DeliverProductState(State):
         else:
             machine.go_to_state('waiting')
         log(f"Total ¢: {machine.amount}")
+
 # Count out the change in coins 
 class CountChangeState(State):
     _NAME = "count_change"
@@ -226,8 +230,8 @@ if __name__ == "__main__":
    # Checks if being used on Pi
     if hardware_present:
         # Set up the hardware button callback (do not use () after function!)
-        #key1.when_pressed = vending.button_action
-        None
+        key1.when_pressed = vending.button_action
+
     # The Event Loop: begin continuous processing of events
     # The window.read() function reads events and values from the GUI.
     # The machine.event variable stores the event so that the
@@ -242,6 +246,7 @@ if __name__ == "__main__":
             break
         vending.event = event
         vending.update()
+
 
     window.close()
     print("Normal exit")
