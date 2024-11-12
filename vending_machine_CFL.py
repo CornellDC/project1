@@ -24,18 +24,17 @@ import time
 import PySimpleGUI as sg
 from gpiozero import Servo, BadPinFactory, Button
 
-
 # Hardware interface module
 # Button basic recipe: *** define the pin you used
 # https://gpiozero.readthedocs.io/en/stable/recipes.html#button
 # Button on GPIO channel, BCM numbering, same name as Pi400 IO pin
 
-#Where am I?
+# Where am I?
 hardware_present = False
 try:
-    servo = Servo(17) # Will change later
+    servo = Servo(17)  # Will change later
     key1 = Button(5, pull_up=True)
-    #*** define the pin you used
+    # *** define the pin you used
     hardware_present = True
 except BadPinFactory:
     print("Not on a Raspberry Pi or gpiozero not installed.")
@@ -44,9 +43,9 @@ except BadPinFactory:
 # Set it to False for normal operation
 TESTING = True
 
+
 # Print a debug log string if TESTING is True, ensure use of Docstring, in definition
 def log(s):
-    
     if TESTING:
         print(s)
 
@@ -56,15 +55,14 @@ def log(s):
 # is the products and prices, and the coins inserted and change due.
 # For testing purposes, output is to stdout, also ensure use of Docstring, in class
 class VendingMachine(object):
-    
     PRODUCTS = {
-                "Chocolate": ("Chocolate", 200),
-                "Cola": ("Cola", 150),
-                "Milk": ("Milk", 200),
-                "Choc Milk": ("Choc Milk", 225),
-                "Gum": ("Gum", 125),
+        "Chocolate": ("Chocolate", 200),
+        "Cola": ("Cola", 150),
+        "Milk": ("Milk", 200),
+        "Choc Milk": ("Choc Milk", 225),
+        "Gum": ("Gum", 125),
 
-                }
+    }
 
     # List of coins: each tuple is ("VALUE", value in cents)
     COINS = {"¢5": ("5", 5),
@@ -72,15 +70,15 @@ class VendingMachine(object):
              "¢25": ("25", 25),
              "$1": ("100", 100),
              "$2": ("200", 200)
-            }
+             }
 
-
-    def __init__(self):
+    def __init__(self, ):
         self.state = None  # current state
         self.states = {}  # dictionary of states
         self.event = ""  # no event detected
         self.amount = 0  # amount from coins inserted so far
         self.change_due = 0  # change due after vending
+
         # Build a list of coins in descending order of value
         values = []
         for k in self.COINS:
@@ -101,7 +99,7 @@ class VendingMachine(object):
 
     def update(self):
         if self.state:
-            #log('Updating %s' % (self.state.name))
+            # log('Updating %s' % (self.state.name))
             self.state.update(self)
 
     def add_coin(self, coin):
@@ -113,27 +111,34 @@ class VendingMachine(object):
         self.event = 'RETURN'
         self.update()
 
+
 # Parent class for the derived state classes
 # It does nothing. The derived classes are where the work is done.
 # However this is needed. In formal terms, this is an "abstract" class.
 class State(object):
     """Superclass for states. Override the methods as required."""
     _NAME = ""
+
     def __init__(self):
         pass
+
     @property
     def name(self):
         return self._NAME
+
     def on_entry(self, machine):
         pass
+
     def on_exit(self, machine):
         pass
+
     def update(self, machine):
         pass
 
 # In the waiting state, the machine waits for the first coin
 class WaitingState(State):
     _NAME = "waiting"
+
     def update(self, machine):
         if machine.event in machine.COINS:
             machine.add_coin(machine.event)
@@ -142,6 +147,7 @@ class WaitingState(State):
 # Additional coins, until a product button is pressed
 class AddCoinsState(State):
     _NAME = "add_coins"
+
     def update(self, machine):
         if machine.event == "RETURN":
             machine.change_due = machine.amount  # return entire amount
@@ -159,38 +165,46 @@ class AddCoinsState(State):
 # Print the product being delivered
 class DeliverProductState(State):
     _NAME = "deliver_product"
+
     def on_entry(self, machine):
         # Deliver the product and change state
         machine.change_due = machine.amount - machine.PRODUCTS[machine.event][1]
         machine.amount = 0
         print("Buzz... Whir... Click...", machine.PRODUCTS[machine.event][0])
+        if hardware_present:  # makes sure hardware is present before trying to move the servo
+            servo.max()
+            time.sleep(1)
+            servo.min()
         if machine.change_due > 0:
             machine.go_to_state('count_change')
         else:
             machine.go_to_state('waiting')
         log(f"Total ¢: {machine.amount}")
 
-# Count out the change in coins 
+
+# Count out the change in coins
 class CountChangeState(State):
     _NAME = "count_change"
+
     def on_entry(self, machine):
         # Return the change due and change state
         print("Change due: $%0.2f" % (machine.change_due / 100))
         log("Returning change: " + str(machine.change_due))
+
     def update(self, machine):
         for coin_index in range(0, 5):
-            #print("working with", machine.coin_values[coin_index])
+            # print("working with", machine.coin_values[coin_index])
             while machine.change_due >= machine.coin_values[coin_index]:
                 print("Returning %d" % machine.coin_values[coin_index])
                 machine.change_due -= machine.coin_values[coin_index]
         if machine.change_due == 0:
-            machine.go_to_state('waiting') # No more change due, done
+            machine.go_to_state('waiting')  # No more change due, done
 
 
 # MAIN PROGRAM
 if __name__ == "__main__":
-    #define the GUI
-    sg.theme('BluePurple')    # Keep things interesting for your users
+    # define the GUI
+    sg.theme('BluePurple')  # Keep things interesting for your users
 
     coin_col = []
     coin_col.append([sg.Text("ENTER COINS", font=("Helvetica", 24))])
@@ -208,10 +222,10 @@ if __name__ == "__main__":
         row = [button]
         select_col.append(row)
 
-    layout = [ [sg.Column(coin_col, vertical_alignment="TOP"),
-                     sg.VSeparator(),
-                     sg.Column(select_col, vertical_alignment="TOP")
-                    ] ]
+    layout = [[sg.Column(coin_col, vertical_alignment="TOP"),
+               sg.VSeparator(),
+               sg.Column(select_col, vertical_alignment="TOP")
+               ]]
     layout.append([sg.Button("RETURN", font=("Helvetica", 12))])
     window = sg.Window('Vending Machine', layout)
 
@@ -227,7 +241,7 @@ if __name__ == "__main__":
     # Reset state is "waiting for coins"
     vending.go_to_state('waiting')
 
-   # Checks if being used on Pi
+    # Checks if being used on Pi
     if hardware_present:
         # Set up the hardware button callback (do not use () after function!)
         key1.when_pressed = vending.button_action
@@ -236,6 +250,7 @@ if __name__ == "__main__":
     # The window.read() function reads events and values from the GUI.
     # The machine.event variable stores the event so that the
     # update function can process it.
+
     # Now that all the states have been defined this is the
     # main portion of the main program.
     while True:
@@ -246,7 +261,6 @@ if __name__ == "__main__":
             break
         vending.event = event
         vending.update()
-
 
     window.close()
     print("Normal exit")
