@@ -1,6 +1,16 @@
-"""
+'''
+TPRG 2131 Fall 2024 Project 1 - Pytest
+November 14th, 2024
+Cornell Falconer-Lawson <Cornell.FalconerLawson@dcmail.ca>
+
+This program is strictly my own work. Any material
+beyond course learning materials that is taken from
+the Web or other sources is properly cited, giving
+credit to the original author(s).
+
 For the 'vending_machine_graphical.py' script - WORKS
-"""
+'''
+
 
 from vending_machine_CFL import VendingMachine, WaitingState, AddCoinsState, DeliverProductState, CountChangeState
 
