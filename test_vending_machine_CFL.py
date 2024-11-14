@@ -19,13 +19,33 @@ def test_VendingMachine():
     vending.add_state(DeliverProductState())
     vending.add_state(CountChangeState())
 
-
     # Reset state is "waiting for first coin"
     vending.go_to_state('waiting')
     assert vending.state.name == 'waiting'
 
     # test that the first coin causes a transition to 'coins'
-    vending.event = '$2'  # a twonie
+    vending.event = '$2'  # a toonie
     vending.update()
     assert vending.state.name == 'add_coins'
     assert vending.amount == 200  # pennies, was .total
+
+    vending.event = '$1'  # a loonie
+    vending.update()
+    assert vending.state.name == 'add_coins'
+    assert vending.amount == 300  # pennies, was .total
+
+    vending.event = '¢25'  # a quarter
+    vending.update()
+    assert vending.state.name == 'add_coins'
+    assert vending.amount == 325  # pennies, was .total
+
+    vending.event = '¢10'  # a dime
+    vending.update()
+    assert vending.state.name == 'add_coins'
+    assert vending.amount == 335  # pennies, was .total
+
+    vending.event = '¢5'  # a nickel
+    vending.update()
+    assert vending.state.name == 'add_coins'
+    assert vending.amount == 340  # pennies, was .total
+
