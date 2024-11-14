@@ -25,7 +25,7 @@ def test_VendingMachine():
     assert vending.state.name == 'waiting'
 
     # test that the first coin causes a transition to 'coins'
-    vending.event = '200'  # a twonie
+    vending.event = '$2'  # a twonie
     vending.update()
     assert vending.state.name == 'add_coins'
     assert vending.amount == 200  # pennies, was .total
