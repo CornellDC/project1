@@ -219,7 +219,10 @@ if __name__ == "__main__":
     for item in VendingMachine.PRODUCTS:
         log(item)
         button = sg.Button(item, font=("Helvetica", 18))
-        row = [button]
+        # Add price tags to gui.
+        price_label = sg.Text(f"¢{VendingMachine.PRODUCTS[item][1]}", font=("Helvetica", 18))
+
+        row = [button, price_label]
         select_col.append(row)
 
     layout = [[sg.Column(coin_col, vertical_alignment="TOP"),
