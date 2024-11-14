@@ -59,3 +59,10 @@ def test_VendingMachine():
     assert vending.state.name == 'add_coins'
     assert vending.amount == 340  # pennies, was .total
 
+    # Test returning change.
+    vending.button_action()
+    assert vending.state.name == 'count_change'
+    assert vending.amount == 0  # pennies, was .total
+
+
+
