@@ -1,7 +1,6 @@
-#!/usr/bin/env python3
 '''
 TPRG 2131 Fall 2024 Project 1
-October 28th, 2024
+November 17th, 2024
 Cornell Falconer-Lawson <Cornell.FalconerLawson@dcmail.ca>
 
 This program is strictly my own work. Any material
@@ -9,10 +8,11 @@ beyond course learning materials that is taken from
 the Web or other sources is properly cited, giving
 credit to the original author(s).
 
-DESCRIPTION
-'''
-import time
+Vending machine that utilizes a state machine to insert coins, dispense products and return change.
+This is built using PySimpleGUI.
 
+If hardware is present, It will pulse a servo to simulate dispensing a real product. There will also be a button present which will return change whenever it's pressed.
+'''
 # PySimpleGUI recipes used:
 #
 # Persistent GUI example
@@ -23,6 +23,7 @@ import time
 
 import PySimpleGUI as sg
 from gpiozero import Servo, BadPinFactory, Button
+import time
 
 # Hardware interface module
 # Button basic recipe: *** define the pin you used
