@@ -29,10 +29,12 @@ from gpiozero import Servo, BadPinFactory, Button
 # https://gpiozero.readthedocs.io/en/stable/recipes.html#button
 # Button on GPIO channel, BCM numbering, same name as Pi400 IO pin
 
-# Where am I?
+# Where am I? Checks if there is hardware present on the machine to operate a servo and button.
+# If the check fails, it is assumed that there is no hardware and an attempt will not be made
+# to use hardware.
 hardware_present = False
 try:
-    servo = Servo(17)  # Will change later
+    servo = Servo(17)
     key1 = Button(5, pull_up=True)
     # *** define the pin you used
     hardware_present = True
@@ -41,20 +43,20 @@ except BadPinFactory:
 
 # Setting this constant to True enables the logging function
 # Set it to False for normal operation
-TESTING = True
-
+TESTING = False
 
 # Print a debug log string if TESTING is True, ensure use of Docstring, in definition
 def log(s):
     if TESTING:
         print(s)
 
-
 # The vending state machine class holds the states and any information
 # that "belongs to" the state machine. In this case, the information
 # is the products and prices, and the coins inserted and change due.
 # For testing purposes, output is to stdout, also ensure use of Docstring, in class
 class VendingMachine(object):
+    """Vending machine object that contains items, and currency, states need to be added using the
+    add_state function."""
     PRODUCTS = {
         "Chocolate": ("Chocolate", 200),
         "Cola": ("Cola", 150),
@@ -87,9 +89,11 @@ class VendingMachine(object):
         log(str(self.coin_values))
 
     def add_state(self, state):
+        """Adds states to the state machine."""
         self.states[state.name] = state
 
     def go_to_state(self, state_name):
+        """Changes the state machine to the specified state."""
         if self.state:
             log('Exiting %s' % (self.state.name))
             self.state.on_exit(self)
@@ -98,6 +102,7 @@ class VendingMachine(object):
         self.state.on_entry(self)
 
     def update(self):
+        """Updates the state."""
         if self.state:
             # log('Updating %s' % (self.state.name))
             self.state.update(self)
@@ -164,8 +169,8 @@ class AddCoinsState(State):
 
 # Print the product being delivered
 class DeliverProductState(State):
+    """State that handles product delivery such as math, and operation of the servo."""
     _NAME = "deliver_product"
-
     def on_entry(self, machine):
         # Deliver the product and change state
         machine.change_due = machine.amount - machine.PRODUCTS[machine.event][1]
@@ -184,6 +189,7 @@ class DeliverProductState(State):
 
 # Count out the change in coins
 class CountChangeState(State):
+    """State that subtracts and returns change in the smallest amount of coins"""
     _NAME = "count_change"
 
     def on_entry(self, machine):
