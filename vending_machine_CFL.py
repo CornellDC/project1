@@ -13,6 +13,8 @@ This is built using PySimpleGUI.
 
 If hardware is present, It will pulse a servo to simulate dispensing a real product. There will also be a button present which will return change whenever it's pressed.
 '''
+from platform import machine
+
 # PySimpleGUI recipes used:
 #
 # Persistent GUI example
@@ -35,8 +37,8 @@ import time
 # to use hardware.
 hardware_present = False
 try:
-    servo = Servo(17)
-    key1 = Button(5, pull_up=True)
+    servo = Servo(11)
+    key1 = Button(29, pull_up=True)
     # *** define the pin you used
     hardware_present = True
 except BadPinFactory:
@@ -210,6 +212,18 @@ class CountChangeState(State):
 
 # MAIN PROGRAM
 if __name__ == "__main__":
+    # new machine object
+    vending = VendingMachine()
+
+    # Add the states
+    vending.add_state(WaitingState())
+    vending.add_state(AddCoinsState())
+    vending.add_state(DeliverProductState())
+    vending.add_state(CountChangeState())
+
+    # Reset state is "waiting for coins"
+    vending.go_to_state('waiting')
+
     # define the GUI
     sg.theme('BluePurple')  # Keep things interesting for your users
 
@@ -234,22 +248,14 @@ if __name__ == "__main__":
 
     layout = [[sg.Column(coin_col, vertical_alignment="TOP"),
                sg.VSeparator(),
-               sg.Column(select_col, vertical_alignment="TOP")
+               sg.Column(select_col, vertical_alignment="TOP"),
                ]]
-    layout.append([sg.Button("RETURN", font=("Helvetica", 12))])
+
+    # Add total money element, and button to GUI
+    total_money = sg.Text(f"", font=("Helvetica", 18), key="_TOTALMONEY_")
+    layout.append([sg.Button("RETURN", font=("Helvetica", 12)), total_money])
+
     window = sg.Window('Vending Machine', layout)
-
-    # new machine object
-    vending = VendingMachine()
-
-    # Add the states
-    vending.add_state(WaitingState())
-    vending.add_state(AddCoinsState())
-    vending.add_state(DeliverProductState())
-    vending.add_state(CountChangeState())
-
-    # Reset state is "waiting for coins"
-    vending.go_to_state('waiting')
 
     # Checks if being used on Pi
     if hardware_present:
@@ -271,6 +277,8 @@ if __name__ == "__main__":
             break
         vending.event = event
         vending.update()
+        # Update the total money element on the GUI.
+        window.Element("_TOTALMONEY_").update(f"Balance: ¢{vending.amount}")
 
     window.close()
     print("Normal exit")
