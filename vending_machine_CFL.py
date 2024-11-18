@@ -1,7 +1,6 @@
-#!/usr/bin/env python3
 '''
 TPRG 2131 Fall 2024 Project 1
-October 28th, 2024
+November 17th, 2024
 Cornell Falconer-Lawson <Cornell.FalconerLawson@dcmail.ca>
 
 This program is strictly my own work. Any material
@@ -9,9 +8,12 @@ beyond course learning materials that is taken from
 the Web or other sources is properly cited, giving
 credit to the original author(s).
 
-DESCRIPTION
+Vending machine that utilizes a state machine to insert coins, dispense products and return change.
+This is built using PySimpleGUI.
+
+If hardware is present, It will pulse a servo to simulate dispensing a real product. There will also be a button present which will return change whenever it's pressed.
 '''
-import time
+from platform import machine
 
 # PySimpleGUI recipes used:
 #
@@ -23,17 +25,20 @@ import time
 
 import PySimpleGUI as sg
 from gpiozero import Servo, BadPinFactory, Button
+import time
 
 # Hardware interface module
 # Button basic recipe: *** define the pin you used
 # https://gpiozero.readthedocs.io/en/stable/recipes.html#button
 # Button on GPIO channel, BCM numbering, same name as Pi400 IO pin
 
-# Where am I?
+# Where am I? Checks if there is hardware present on the machine to operate a servo and button.
+# If the check fails, it is assumed that there is no hardware and an attempt will not be made
+# to use hardware.
 hardware_present = False
 try:
-    servo = Servo(17)  # Will change later
-    key1 = Button(5, pull_up=True)
+    servo = Servo(11)
+    key1 = Button(29, pull_up=True)
     # *** define the pin you used
     hardware_present = True
 except BadPinFactory:
@@ -41,20 +46,20 @@ except BadPinFactory:
 
 # Setting this constant to True enables the logging function
 # Set it to False for normal operation
-TESTING = True
-
+TESTING = False
 
 # Print a debug log string if TESTING is True, ensure use of Docstring, in definition
 def log(s):
     if TESTING:
         print(s)
 
-
 # The vending state machine class holds the states and any information
 # that "belongs to" the state machine. In this case, the information
 # is the products and prices, and the coins inserted and change due.
 # For testing purposes, output is to stdout, also ensure use of Docstring, in class
 class VendingMachine(object):
+    """Vending machine object that contains items, and currency, states need to be added using the
+    add_state function."""
     PRODUCTS = {
         "Chocolate": ("Chocolate", 200),
         "Cola": ("Cola", 150),
@@ -87,9 +92,11 @@ class VendingMachine(object):
         log(str(self.coin_values))
 
     def add_state(self, state):
+        """Adds states to the state machine."""
         self.states[state.name] = state
 
     def go_to_state(self, state_name):
+        """Changes the state machine to the specified state."""
         if self.state:
             log('Exiting %s' % (self.state.name))
             self.state.on_exit(self)
@@ -98,6 +105,7 @@ class VendingMachine(object):
         self.state.on_entry(self)
 
     def update(self):
+        """Updates the state."""
         if self.state:
             # log('Updating %s' % (self.state.name))
             self.state.update(self)
@@ -164,8 +172,8 @@ class AddCoinsState(State):
 
 # Print the product being delivered
 class DeliverProductState(State):
+    """State that handles product delivery such as math, and operation of the servo."""
     _NAME = "deliver_product"
-
     def on_entry(self, machine):
         # Deliver the product and change state
         machine.change_due = machine.amount - machine.PRODUCTS[machine.event][1]
@@ -184,6 +192,7 @@ class DeliverProductState(State):
 
 # Count out the change in coins
 class CountChangeState(State):
+    """State that subtracts and returns change in the smallest amount of coins"""
     _NAME = "count_change"
 
     def on_entry(self, machine):
@@ -203,6 +212,18 @@ class CountChangeState(State):
 
 # MAIN PROGRAM
 if __name__ == "__main__":
+    # new machine object
+    vending = VendingMachine()
+
+    # Add the states
+    vending.add_state(WaitingState())
+    vending.add_state(AddCoinsState())
+    vending.add_state(DeliverProductState())
+    vending.add_state(CountChangeState())
+
+    # Reset state is "waiting for coins"
+    vending.go_to_state('waiting')
+
     # define the GUI
     sg.theme('BluePurple')  # Keep things interesting for your users
 
@@ -227,22 +248,14 @@ if __name__ == "__main__":
 
     layout = [[sg.Column(coin_col, vertical_alignment="TOP"),
                sg.VSeparator(),
-               sg.Column(select_col, vertical_alignment="TOP")
+               sg.Column(select_col, vertical_alignment="TOP"),
                ]]
-    layout.append([sg.Button("RETURN", font=("Helvetica", 12))])
+
+    # Add total money element, and button to GUI
+    total_money = sg.Text(f"", font=("Helvetica", 18), key="_TOTALMONEY_")
+    layout.append([sg.Button("RETURN", font=("Helvetica", 12)), total_money])
+
     window = sg.Window('Vending Machine', layout)
-
-    # new machine object
-    vending = VendingMachine()
-
-    # Add the states
-    vending.add_state(WaitingState())
-    vending.add_state(AddCoinsState())
-    vending.add_state(DeliverProductState())
-    vending.add_state(CountChangeState())
-
-    # Reset state is "waiting for coins"
-    vending.go_to_state('waiting')
 
     # Checks if being used on Pi
     if hardware_present:
@@ -264,6 +277,8 @@ if __name__ == "__main__":
             break
         vending.event = event
         vending.update()
+        # Update the total money element on the GUI.
+        window.Element("_TOTALMONEY_").update(f"Balance: ¢{vending.amount}")
 
     window.close()
     print("Normal exit")
